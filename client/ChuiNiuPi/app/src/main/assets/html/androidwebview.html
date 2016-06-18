@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <title>WebView详解</title>
+</head>
+<body>
+<h3 style="width: 100%;font-size: 50px">WebView详解</h3>
+<div style="font-size: 30px;color: red">一.简介</div>
+<p style="font-size: 20px;margin-left: 30px">显示网页的android控件，这个类是在可以推出自己的Web浏览器或简单地显示一些在线内容。它采用了WebKit渲染引擎来显示网页和包含的方法来向前和向后导航通过历史，放大和缩小，执行文本搜索等</p>
+<div style="font-size: 30px;color: red">二.相关类</div>
+<p><pre style="font-size: 20px" >
+    1)WebSettings:管理WebView的设置状态
+    WebSettings settings=mWebView.getSettings()；
+    settings.setJavaScriptEnabled(false);
+    表示不支持js，如果想让java和js交互或者本身希望js完成一定的功能请把false改为true。
+    settings.setSupportZoom(false);
+    设置是否支持缩放，我这里为false，默认为true。
+    settings.setBuiltInZoomControls(false);
+    设置是否显示缩放工具，默认为false。
+    settings.setLayoutAlgorithm(LayoutAlgorithm.SINGLE_COLUMN);
+    一般很少会用到这个，用WebView组件显示普通网页时一般会出现横向滚动条，这样会导致页面查看起来非常不方便。LayoutAlgorithm是一个枚举，用来控制html的布局，总共有三种类型：
+    NORMAL：正常显示，没有渲染变化。
+    SINGLE_COLUMN：把所有内容放到WebView组件等宽的一列中。
+    NARROW_COLUMNS：可能的话，使所有列的宽度不超过屏幕宽度。
+    settings.setDefaultFontSize(18);
+    设置默认的字体大小，默认为16，有效值区间在1-72之间。
+    setJavaScriptEnabled(true);  //支持js
+    setPluginsEnabled(true);  //支持插件
+    setUseWideViewPort(false);  //将图片调整到适合webview的大小
+    setSupportZoom(true);  //支持缩放
+    setLayoutAlgorithm(LayoutAlgorithm.SINGLE_COLUMN); //支持内容重新布局
+    supportMultipleWindows();  //多窗口
+    setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);  //关闭webview中缓存
+    setAllowFileAccess(true);  //设置可以访问文件
+    setNeedInitialFocus(true); //当webview调用requestFocus时为webview设置节点
+    webview webSettings.setBuiltInZoomControls(true); //设置支持缩放
+    setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
+    setLoadWithOverviewMode(true); // 缩放至屏幕的大小
+    setLoadsImagesAutomatically(true);  //支持自动加载图片
+    2)WebViewClient
+    doUpdateVisitedHistory(WebView view, String url, boolean isReload)  //(更新历史记录)
+    onFormResubmission(WebView view, Message dontResend, Message resend) //(应用程序重新请求网页数据)
+    onLoadResource(WebView view, String url) // 在加载页面资源时会调用，每一个资源（比如图片）的加载都会调用一次。
+    onPageStarted(WebView view, String url, Bitmap favicon) //这个事件就是开始载入页面调用的，通常我们可以在这设定一个loading的页面，告诉用户程序在等待网络响应。
+    onPageFinished(WebView view, String url) //在页面加载结束时调用。同样道理，我们知道一个页面载入完成，于是我们可以关闭loading 条，切换程序动作。
+    onReceivedError(WebView view, int errorCode, String description, String failingUrl)// (报告错误信息)
+    onReceivedHttpAuthRequest(WebView view, HttpAuthHandler handler, String host,String realm)//（获取返回信息授权请求）
+    onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) //重写此方法可以让webview处理https请求。
+    onScaleChanged(WebView view, float oldScale, float newScale) // (WebView发生改变时调用)
+    onUnhandledKeyEvent(WebView view, KeyEvent event) //（Key事件未被加载时调用）
+    shouldOverrideKeyEvent(WebView view, KeyEvent event)//重写此方法才能够处理在浏览器中的按键事件。
+    shouldOverrideUrlLoading(WebView view, String url)
+    //在点击请求的是链接是才会调用，重写此方法返回true表明点击网页里面的链接还是在当前的webview里跳转，不跳到浏览器那边。这个函数我们可以做很多操作，比如我们读取到某些特殊的URL，于是就可以不打开地址，取消这个操作，进行预先定义的其他操作，这对一个程序是非常必要的。</pre></p>
+<div style="font-size: 30px;color: red">三.常见使用</div>
+<p><pre style="font-size: 20px;color: black">
+   1)加载网页
+/**
+ * class summary:基础WebView
+ * Created by jackHappy
+ * 2015/12/13
+ * version 1.0
+ */
+public class BaseWebViewActivity extends Activity {
+    private WebView webView;
+    private WebSettings setting;
+    private ProgressDialog dialog;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        initDialog();
+        initView();
+    }
+    private void initDialog() {
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("正在加载中");
+    }
+    private void initView() {
+        webView = (WebView) findViewById(R.id.webView);
+        //获取设置
+        setting = webView.getSettings();
+        //设置
+        //是否显示缩放控件
+        setting.setDisplayZoomControls(false);
+        //是否支持缩放
+        setting.setSupportZoom(true);
+        //是否内置缩放
+        setting.setBuiltInZoomControls(true);
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);  //加载新的url
+                return true;    //返回true,代表事件已处理,事件流到此终止
+            }
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                dialog.show();
+            }
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                dialog.dismiss();
+            }
+            @Override
+            public void onLoadResource(WebView view, String url) {
+                super.onLoadResource(view, url);
+            }
+            //错误
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                dialog.dismiss();
+            }
+            //请求错误
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+                super.onReceivedHttpError(view, request, errorResponse);
+                dialog.dismiss();
+            }
+        });
+        //加载网页
+        webView.loadUrl("http://www.maizeketang.com");
+    }
+}
+2)加载assets目录下的本地网页
+webView.loadUrl("file:///android_asset/js.html");
+</pre></p>
+<div style="font-size: 30px;color: red">四.与JS交互</div>
+<p>
+    <pre style="font-size: 20px;color: black">
+  addJavascriptInterface(Object object, String name)：添加JS接口
+第一个参数：自定义类，处理接口以及实现
+第二个参数，是与JS代码中调用定义的字符串
+1)JS代码
+    <!--js调用java代码,需要接口-->
+function call_java() {
+    window.android.back();
+}
+function loadData() {
+    window.android.loadData();
+}
+其中，android就是与JS代码中调用的字符串，必须与Android代码中一致
+2)Android中调用
+//添加JS接口
+webView.addJavascriptInterface(new JSInvokeClass(this), "android");
+其中android与JS中调用的一致
+JSInvokeClass是自定义接口类：
+class JSInvokeClass {
+    Activity activity;
+    public JSInvokeClass(Activity activity) {
+        this.activity = activity;
+    }
+    @JavascriptInterface
+    public void back() {
+        Toast.makeText(activity, "Hello ", Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(activity, BaseWebViewActivity.class);
+        startActivity(intent);
+    }
+    @JavascriptInterface
+    public void loadData(){
+        Toast.makeText(activity, "LoadData ", Toast.LENGTH_LONG).show();
+    }
+}
+其中定义的方法就是JS中调用的方法。
+</pre>
+</p>
+</body>
+</html>
