@@ -1,4 +1,4 @@
-package brag;
+package types;
 
 public class LoginTypes {
 	public static final int LOGIN_VISTOR = 0;

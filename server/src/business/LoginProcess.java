@@ -1,4 +1,4 @@
-package brag;
+package business;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -8,8 +8,14 @@ import java.util.logging.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import global.GlobalInstance;
+import tools.Tools;
+import types.DataState;
+import types.LoginTypes;
+import types.MessageTypes;
+
 public class LoginProcess {
-	private LoginHandler loginHandler;
+private LoginHandler loginHandler;
 	
 	private static int visitorLoginNum = 0;
 	
@@ -90,27 +96,19 @@ public class LoginProcess {
 			return createNeedUpdateFlag(1,1); // means not need update
 		}
 				
-		String isDataChanged = GlobalInstance.getInstance().getDbHandler().isUserDataChanged(userId);
+		DataState isChanged = GlobalInstance.getInstance().getDbHandler().isUserDataChanged(userId);
 		
-		JSONObject userJson;
-		try {
-			userJson = new JSONObject(isDataChanged);
-			// user is not existed.
-			if (0 == userJson.length()) {
-				boolean ret = GlobalInstance.getInstance().getDbHandler().insertUser(userId, loginType, loginNum);
-				if (ret) {
-					Logger.getGlobal().info("save userId to database success");
-				} else {
-					Logger.getGlobal().info("save userId to database failed");
-				}
-				needRefreshFlag = createNeedUpdateFlag(0, 0);
+		// user is not existed.
+		if (isChanged.INVALID == isChanged.name_changed) {
+			boolean ret = GlobalInstance.getInstance().getDbHandler().insertUser(userId, loginType, loginNum);
+			if (ret) {
+				Logger.getGlobal().info("save user to database success, Id is : " + userId);
 			} else {
-				needRefreshFlag = createNeedUpdateFlag(userJson.getInt("name_changed"), userJson.getInt("picture_changed"));
+				Logger.getGlobal().info("save user to database failed, Id is : " + userId);
 			}
-			
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			needRefreshFlag = createNeedUpdateFlag(0, 0);
+		} else {
+			needRefreshFlag = createNeedUpdateFlag(isChanged.name_changed, isChanged.picture_changed);
 		}
 		
 		return needRefreshFlag;
@@ -163,26 +161,3 @@ public class LoginProcess {
 		Logger.getGlobal().info("response MESSAGE_LOGIN_RSP");
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

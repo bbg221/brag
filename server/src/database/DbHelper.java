@@ -1,4 +1,4 @@
-package brag.datebaseHandler;
+package database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class DbHelper {
-	private Connection conn = null;
+private Connection conn = null;
 	
 	public DbHelper()
 	{

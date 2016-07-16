@@ -1,5 +1,3 @@
-package brag;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -7,10 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import brag.networkWithClient.ConnHandler;
+import business.LoginHandler;
+import business.LoginProcess;
+import connection.ConnHandler;
+import global.GlobalInstance;
+import types.MessageTypes;
 
-public class Controller implements ConnHandler, LoginHandler {
-	
+public class Controller implements ConnHandler, LoginHandler{
 	private final int intlen = 4;
 	
 	// save the map of userId and socketChannel
@@ -37,9 +38,6 @@ public class Controller implements ConnHandler, LoginHandler {
 	@Override
 	public void handleRead(SocketChannel sc) throws Exception{
 		// TODO Auto-generated method stub
-		
-		
-		
 		ByteBuffer typeBuf = ByteBuffer.allocate(intlen);
 		ByteBuffer lenBuf = ByteBuffer.allocate(intlen);
 		
@@ -65,8 +63,7 @@ public class Controller implements ConnHandler, LoginHandler {
 		Logger.getGlobal().info("read something from  network messageType:" + 
 				messageType + ", len:" + messageLen + ", domain:" + type);
 		
-		
-		
+
 		switch (MessageTypes.getDomain(messageType)) {
 		case MessageTypes.DOMAIN_LOGIN:
 			loginProcess.processLoginData(messageType, messageLen, sc);
@@ -93,6 +90,4 @@ public class Controller implements ConnHandler, LoginHandler {
 		userIdMap.put(sc, userId);
 		Logger.getGlobal().info("save socket map, userID: " + userId);
 	}
-
-
 }

@@ -1,7 +1,6 @@
-package brag;
-
-import brag.datebaseHandler.DbHandler;
-import brag.networkWithClient.ConnHelper;
+package global;
+import connection.ConnHelper;
+import database.DbHandler;
 
 public class GlobalInstance {
 	private GlobalInstance(){}
@@ -11,8 +10,7 @@ public class GlobalInstance {
     public static GlobalInstance getInstance(){
         return instance;
     }
-    
-    
+        
     private DbHandler dbHandler = new DbHandler();
     private ConnHelper connHelper = new ConnHelper();
     
@@ -23,6 +21,4 @@ public class GlobalInstance {
     public ConnHelper getConnHelper() {
     	return connHelper;
     }
-    
-    
 }

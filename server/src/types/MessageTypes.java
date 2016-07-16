@@ -1,7 +1,6 @@
-package brag;
+package types;
 
 public class MessageTypes {
-	
 	private static final int DOMAIN_OFFSET = 16;
 	
 	public static final int DOMAIN_LOGIN = 1;
@@ -50,5 +49,4 @@ public class MessageTypes {
 	{
 		return messageType >> DOMAIN_OFFSET;
 	}
-
 }

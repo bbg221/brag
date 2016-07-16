@@ -1,15 +1,17 @@
-package brag.datebaseHandler;
+package database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.logging.Logger;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import types.DataState;
+import types.LastLoginDate;
+import types.Range;
+import types.User;
 
 public class DbHandler {
-	private DbHelper dbHelper = new DbHelper();
+private DbHelper dbHelper = new DbHelper();
 	
 	private final int rangeShowNumber = 6;	
 	
@@ -27,11 +29,11 @@ public class DbHandler {
 		return ret;
 	}
 	
-	// json {"id":int, "name":String, "sex":int, "age":int, "win_count":int, "fail_count":int, "equal_count":int, "brag_count":int}
-	public String getUserDataById(int userId)
+
+	public User getUserDataById(int userId)
 	{
 		String getUserSql = "select id, name, sex, age, win_count, fail_count, equal_count, brag_count from tb_user_data where id=" + userId;
-		JSONObject json = new JSONObject();
+		User userData = new User();
 		
 		dbHelper.getConn();
 		
@@ -40,60 +42,58 @@ public class DbHandler {
 		try {
 			while (rs.next())
 			{
-				json.put("id", rs.getInt("id"));
-				json.put("name", rs.getString("name"));
-				json.put("sex", rs.getInt("sex"));
-				json.put("age", rs.getInt("age"));
-				json.put("win_count", rs.getInt("win_count"));
-				json.put("fail_count", rs.getInt("fail_count"));
-				json.put("equal_count", rs.getInt("equal_count"));
-				json.put("brag_count", rs.getInt("brag_count"));
 				
+				userData.userId = rs.getInt("id");
+				userData.name = rs.getString("name");
+				userData.sex = rs.getInt("sex");
+				userData.age = rs.getInt("age");
+				userData.win_count = rs.getInt("win_count");
+				userData.fail_count = rs.getInt("fail_count");
+				userData.equal_count = rs.getInt("equal_count");
+				userData.brag_count = rs.getInt("brag_count");
+
 				// userId is unique, so only one user data can be got.
 				break;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally{
 			dbHelper.closeConn();
 		}
 		
-		return json.toString();
+		return userData;
 	}
 	
-	public String isUserDataChanged(int userId)
+	public DataState isUserDataChanged(int userId)
 	{
 		String getUserSql = "select name_changed, picture_changed from tb_user_data where id=" + userId;
-		JSONObject json = new JSONObject();
 		
+		Logger.getGlobal().info("before get sql ");
 		dbHelper.getConn();
+		long mid = System.nanoTime();
 		
 		ResultSet rs = dbHelper.getSql(getUserSql);
+		
+		DataState isChanged = new DataState();
 		
 		try {
 			while (rs.next())
 			{
-				json.put("name_changed", rs.getInt("name_changed"));
-				json.put("picture_changed", rs.getInt("picture_changed"));
-				
+				isChanged.name_changed = rs.getInt("name_changed");
+				isChanged.picture_changed = rs.getInt("picture_changed");
+								
 				// userId is unique, so only one user data can be got.
 				break;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally{
 			dbHelper.closeConn();
 		}
-		
-		return json.toString();
+		Logger.getGlobal().info("after get sql " + (System.nanoTime() - mid));
+		return isChanged;
 	}
 	
 	// update means use the newest name of 
@@ -108,33 +108,6 @@ public class DbHandler {
 		dbHelper.closeConn();
 		
 		return ret;
-	}
-	
-	// get the flag if user changed the name or picture manually.
-	public String getNameOrPictureChanged(int userId)
-	{
-		String changedSql = "get name_changed, picture_changed from tb_user_data where id=" + userId;
-		
-		JSONObject json = new JSONObject();
-		
-		dbHelper.getConn();		
-		ResultSet rs = dbHelper.getSql(changedSql);
-		
-		try {
-			while (rs.next())
-			{
-				json.put("name_changed", rs.getInt("name_changed"));
-				json.put("picture_changed", rs.getInt("picture_changed"));
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return json.toString();
 	}
 	
 	public boolean changeUserName(int userId, String userName)
@@ -164,218 +137,211 @@ public class DbHandler {
 	}
 	
 	// used for search people.
-	public String getUsersByKeywords(String keywords)
+	public User[] getUsersByKeywords(String keywords)
 	{
 		String getUsersSql = "select id, name, sex, age, win_count, fail_count, equal_count, brag_count " +
 							 "from tb_user_data where login_number like '%" + keywords + "%' or name like '%" + keywords + "%'"; 
-		JSONObject json = new JSONObject();
-		JSONArray jsonMembers = new JSONArray();
 		
 		dbHelper.getConn();		
 		ResultSet rs = dbHelper.getSql(getUsersSql);
 		
+		int rows = 0;
 		try {
-			while (rs.next())
-			{
-				JSONObject jsonMember = new JSONObject();
-				jsonMember.put("id", rs.getInt("id"));
-				jsonMember.put("name", rs.getString("name"));
-				jsonMember.put("sex", rs.getInt("sex"));
-				jsonMember.put("age", rs.getInt("age"));
-				jsonMember.put("win_count", rs.getInt("win_count"));
-				jsonMember.put("fail_count", rs.getInt("fail_count"));
-				jsonMember.put("equal_count", rs.getInt("equal_count"));
-				jsonMember.put("brag_count", rs.getInt("brag_count"));
-				
-				jsonMembers.put(jsonMember);
-			}
-		} catch (SQLException e) {
+			rows = rs.getRow();
+		} catch (SQLException e1) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			dbHelper.closeConn();
+			e1.printStackTrace();
 		}
 		
-		try {
-			json.put("users", jsonMembers);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return json.toString();
-	}
-	
-	public String getWeekRange()
-	{
-		String weakRageSql = "select id, name, sex, age, week_win, week_brag, week_fail, week_equal from tb_user_data " +
-							"order by week_win, week_brag, week_equal desc, week_fail asc";
-		
-		JSONObject json = new JSONObject();
-		JSONArray jsonMembers = new JSONArray();
-		
-		dbHelper.getConn();		
-		ResultSet rs = dbHelper.getSql(weakRageSql);
+		User[] userDatas = new User[rows];
 		
 		int count = 0;
 		
 		try {
 			while (rs.next())
 			{
-				JSONObject jsonMember = new JSONObject();
-				jsonMember.put("id", rs.getInt("id"));
-				jsonMember.put("name", rs.getString("name"));
-				jsonMember.put("sex", rs.getInt("sex"));
-				jsonMember.put("age", rs.getInt("age"));
-				jsonMember.put("week_win", rs.getInt("week_win"));
-				jsonMember.put("week_brag", rs.getInt("week_brag"));
-				jsonMember.put("week_fail", rs.getInt("week_fail"));
-				jsonMember.put("week_equal", rs.getInt("week_equal"));
-				
-				jsonMembers.put(jsonMember);
-				
-				count++;
-				if (rangeShowNumber == count)
-				{
+				if (count == rows) {
+					Logger.getGlobal().info("count is longger than rows, error.");
 					break;
 				}
+				userDatas[count].userId = rs.getInt("id");
+				userDatas[count].name = rs.getString("name");
+				userDatas[count].sex = rs.getInt("sex");
+				userDatas[count].age = rs.getInt("age");
+				userDatas[count].win_count = rs.getInt("win_count");
+				userDatas[count].fail_count = rs.getInt("fail_count");
+				userDatas[count].equal_count = rs.getInt("equal_count");
+				userDatas[count].brag_count = rs.getInt("brag_count");
+				
+				count++;				
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			dbHelper.closeConn();
 		}
 		
-		try {
-			json.put("users", jsonMembers);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
-		return json.toString();
+		
+		return userDatas;
 	}
 	
-	public String getMonthRange()
+	public Range[] getWeekRange()
+	{		
+		String weakRageSql = "select id, name, sex, age, week_win, week_brag, week_fail, week_equal from tb_user_data " +
+							"order by week_win, week_brag, week_equal desc, week_fail asc";		
+		String getTopSql = "select top " + rangeShowNumber + " from (" + weakRageSql + ")";
+
+		dbHelper.getConn();		
+		ResultSet rs = dbHelper.getSql(getTopSql);
+		
+		int rows = 0;
+		try {
+			rows = rs.getRow();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		Range[] rangeDatas = new Range[rows];
+		
+		int count = 0;
+		
+		try {
+			while (rs.next())
+			{
+				if (count == rows) {
+					Logger.getGlobal().info("count is longger than rows, error.");
+					break;
+				}
+				rangeDatas[count].id = rs.getInt("id");
+				rangeDatas[count].name = rs.getString("name");
+				rangeDatas[count].sex = rs.getInt("sex");
+				rangeDatas[count].age = rs.getInt("age");
+				rangeDatas[count].win = rs.getInt("week_win");
+				rangeDatas[count].brag = rs.getInt("week_brag");
+				rangeDatas[count].fail = rs.getInt("week_fail");
+				rangeDatas[count].equal = rs.getInt("week_equal");
+				
+				count++;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			dbHelper.closeConn();
+		}
+		
+		return rangeDatas;
+	}
+	
+	public Range[] getMonthRange()
 	{
-		String weakRageSql = "select id, name, sex, age, month_win, month_brag, month_fail, month_equal from tb_user_data " +
+		String monthRageSql = "select id, name, sex, age, month_win, month_brag, month_fail, month_equal from tb_user_data " +
 							"order by month_win, month_brag, month_equal desc, month_fail asc";
 		
-		JSONObject json = new JSONObject();
-		JSONArray jsonMembers = new JSONArray();
+		String getTopSql = "select top " + rangeShowNumber + " from (" + monthRageSql + ")";
+		
 		
 		dbHelper.getConn();		
-		ResultSet rs = dbHelper.getSql(weakRageSql);
+		ResultSet rs = dbHelper.getSql(getTopSql);
+		
+		int rows = 0;
+		try {
+			rows = rs.getRow();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		Range[] rangeDatas = new Range[rows];
 		
 		int count = 0;
 		
 		try {
 			while (rs.next())
 			{
-				JSONObject jsonMember = new JSONObject();
-				jsonMember.put("id", rs.getInt("id"));
-				jsonMember.put("name", rs.getString("name"));
-				jsonMember.put("sex", rs.getInt("sex"));
-				jsonMember.put("age", rs.getInt("age"));
-				jsonMember.put("month_win", rs.getInt("month_win"));
-				jsonMember.put("month_brag", rs.getInt("month_brag"));
-				jsonMember.put("month_fail", rs.getInt("month_fail"));
-				jsonMember.put("month_equal", rs.getInt("month_equal"));
-				
-				jsonMembers.put(jsonMember);
-				
-				count++;
-				if (rangeShowNumber == count)
-				{
+				if (count == rows) {
+					Logger.getGlobal().info("count is longger than rows, error.");
 					break;
 				}
+				rangeDatas[count].id = rs.getInt("id");
+				rangeDatas[count].name = rs.getString("name");
+				rangeDatas[count].sex = rs.getInt("sex");
+				rangeDatas[count].age = rs.getInt("age");
+				rangeDatas[count].win = rs.getInt("month_win");
+				rangeDatas[count].brag = rs.getInt("month_brag");
+				rangeDatas[count].fail = rs.getInt("month_fail");
+				rangeDatas[count].equal = rs.getInt("month_equal");
+				
+				count++;
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			dbHelper.closeConn();
 		}
-		
-		try {
-			json.put("users", jsonMembers);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return json.toString();
+				
+		return rangeDatas;
 	}
 	
-	public String getAllRange()
+	public Range[] getAllRange()
 	{
 		String allRageSql = "select id, name, sex, age, win_count, fail_count, equal_count, brag_count from tb_user_data " +
 				"order by win_count, brag_count, equal_count desc, fail_count asc";
 
-		JSONObject json = new JSONObject();
-		JSONArray jsonMembers = new JSONArray();
+		String getTopSql = "select top " + rangeShowNumber + " from (" + allRageSql + ")";
 		
 		dbHelper.getConn();		
-		ResultSet rs = dbHelper.getSql(allRageSql);
+		ResultSet rs = dbHelper.getSql(getTopSql);
 		
+		int rows = 0;
+		try {
+			rows = rs.getRow();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		Range[] rangeDatas = new Range[rows];
+
 		int count = 0;
 		
 		try {
 		while (rs.next())
 		{
-			JSONObject jsonMember = new JSONObject();
-			jsonMember.put("id", rs.getInt("id"));
-			jsonMember.put("name", rs.getString("name"));
-			jsonMember.put("sex", rs.getInt("sex"));
-			jsonMember.put("age", rs.getInt("age"));
-			jsonMember.put("win_count", rs.getInt("win_count"));
-			jsonMember.put("fail_count", rs.getInt("fail_count"));
-			jsonMember.put("equal_count", rs.getInt("equal_count"));
-			jsonMember.put("brag_count", rs.getInt("brag_count"));
-			
-			jsonMembers.put(jsonMember);
-			
-			count++;
-			if (rangeShowNumber == count)
-			{
+			if (count == rows) {
+				Logger.getGlobal().info("count is longger than rows, error.");
 				break;
 			}
+			rangeDatas[count].id = rs.getInt("id");
+			rangeDatas[count].name = rs.getString("name");
+			rangeDatas[count].sex = rs.getInt("sex");
+			rangeDatas[count].age = rs.getInt("age");
+			rangeDatas[count].win = rs.getInt("win_count");
+			rangeDatas[count].brag = rs.getInt("fail_count");
+			rangeDatas[count].fail = rs.getInt("equal_count");
+			rangeDatas[count].equal = rs.getInt("brag_count");
+			
+			count++;
 		}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			dbHelper.closeConn();
 		}
-		
-		try {
-			json.put("users", jsonMembers);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return json.toString();
+				
+		return rangeDatas;
 	}
 	
 	// get the last login date to clean the week range or month range. do this every time when one round is end.
-	private String getLastLoginDate(int userId)
+	private LastLoginDate getLastLoginDate(int userId)
 	{
 		String LastLoginSql = "select last_login_month, last_login_week from tb_user_data where id=" + userId;
-		JSONObject json = new JSONObject();
+		LastLoginDate lastLoginDate = new LastLoginDate();
 		
 		dbHelper.getConn();
 		
@@ -384,8 +350,8 @@ public class DbHandler {
 		try {
 			while (rs.next())
 			{
-				json.put("last_login_month", rs.getInt("last_login_month"));
-				json.put("last_login_week", rs.getString("last_login_week"));
+				lastLoginDate.last_login_month = rs.getInt("last_login_month");
+				lastLoginDate.last_login_week = rs.getInt("last_login_week");
 				
 				// userId is unique, so only one user data can be got.
 				break;
@@ -393,14 +359,11 @@ public class DbHandler {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} finally{
 			dbHelper.closeConn();
 		}
 		
-		return json.toString();
+		return lastLoginDate;
 	}
 	
 	private boolean preprocessRange(int userId)
@@ -413,20 +376,15 @@ public class DbHandler {
 		int currMonth = c.get(Calendar.MONTH);
 		int currWeekInYear = c.get(Calendar.WEEK_OF_YEAR);
 		
-		String lastLoginDate = getLastLoginDate(userId);
-		try {
-			JSONObject lastLoginJson = new JSONObject(lastLoginDate);
-			if (0 != lastLoginJson.length() && currWeekInYear == lastLoginJson.getInt("last_login_week"))
-			{
-				needClean = 2;
-			}
-			else if (0 != lastLoginJson.length() && currMonth == lastLoginJson.getInt("last_login_month"))
-			{
-				needClean = 1;
-			}			
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		LastLoginDate lastLoginDate = getLastLoginDate(userId);
+
+		if (lastLoginDate.INVALID_DATE != lastLoginDate.last_login_week && currWeekInYear == lastLoginDate.last_login_week)
+		{
+			needClean = 2;
+		}
+		else if (lastLoginDate.INVALID_DATE != lastLoginDate.last_login_month && currMonth == lastLoginDate.last_login_month)
+		{
+			needClean = 1;
 		}
 		
 		String preprocessSql = "";
