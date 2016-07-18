@@ -126,14 +126,135 @@ private DbHelper dbHelper = new DbHelper();
 	public boolean changePicture(int userId)
 	{
 		boolean ret = false;
-		int pirctureChanged = 1;
-		String updateSql = "update tb_user_data set picture_changed='" + pirctureChanged + " where id=" + userId;
+		int pictureChanged = 1;
+		String updateSql = "update tb_user_data set picture_changed='" + pictureChanged + " where id=" + userId;
 		
 		dbHelper.getConn();
 		ret = dbHelper.setSql(updateSql);
 		dbHelper.closeConn();
 		
 		return ret;
+	}
+	
+	public int[] getFriends(int userId) {
+		String friendSql = "select friends from tb_user_data where id =" + userId;
+		
+		dbHelper.getConn();
+		ResultSet rs = dbHelper.getSql(friendSql);
+		
+		String strFriends = "";
+		
+		try{
+			while (rs.next()) {
+				strFriends = rs.getString("friends");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			dbHelper.closeConn();
+		}
+		
+		if (strFriends.isEmpty()) {
+			int[] empty = new int[0];
+			return empty;
+		}
+		
+		String[] strArr = strFriends.split(",");
+		int[] result = new int[strArr.length];
+		
+		for (int i =0 ; i < strArr.length; i++) {
+			result[i] = Integer.parseInt(strArr[i]);
+		}
+		
+		return result;
+	}
+	
+	private String convertArray(int[] arr) {
+		String str = "";
+		
+		if (arr.length < 1) {
+			return str;
+		}
+		
+		str += arr[0];
+		
+		for (int i = 1; i < arr.length; i++) {
+			str += "," + arr[i];
+		}
+		
+		return str;
+	}
+	
+	private String convertArray(int[] arr, int add) {
+		String str = convertArray(arr);
+		
+		if (str.isEmpty()) {
+			str = "" + add;
+		} else {
+			str += "," + add;
+		}
+		
+		return str;
+	}
+	
+	private boolean saveFriends(int userId, String friends) {
+		boolean ret = false;
+		String updateSql = "update tb_user_data set friends=" + friends + " where id=" + userId;
+		
+		dbHelper.getConn();
+		ret = dbHelper.setSql(updateSql);
+		dbHelper.closeConn();
+		
+		return ret;
+	}
+	
+	public boolean addFriend(int userId, int friendId) {
+		int[] friends = getFriends(userId);
+		boolean isExist = false;
+		for (int i = 0; i < friends.length; i++) {
+			if (friends[i] == friendId) {
+				isExist = true;
+				break;
+			}
+		}
+		
+		if (isExist) {
+			return true;
+		}
+		
+		String strFriends = convertArray(friends, friendId);
+		return saveFriends(userId, strFriends);
+	}
+	
+	public boolean delFriend(int userId, int friendId) {
+		int[] friends = getFriends(userId);
+		
+		String strFriends = "";
+		if (0 == friends.length) {
+			return true;
+		}
+		
+		int i = 1;
+		
+		if (friends[0] == friendId) {
+			if (friends.length <= 1) {				
+				return saveFriends(userId, strFriends);
+			}				
+			
+			strFriends = "" + friends[1];	
+			i = 2;
+		}
+		else {
+			strFriends = "" + friends[0];
+		}
+		
+		for (; i < friends.length; i++) {
+			if (friendId != friends[i]) {
+				strFriends += "," + friends[i];
+			}
+		}
+		
+		return saveFriends(userId, strFriends);
 	}
 	
 	// used for search people.
@@ -181,8 +302,6 @@ private DbHelper dbHelper = new DbHelper();
 		} finally {
 			dbHelper.closeConn();
 		}
-		
-		
 		
 		return userDatas;
 	}
