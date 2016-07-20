@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.logging.Logger;
 
+import tools.Tools;
 import types.DataState;
 import types.LastLoginDate;
 import types.Range;
@@ -159,34 +160,11 @@ private DbHelper dbHelper = new DbHelper();
 			return empty;
 		}
 		
-		String[] strArr = strFriends.split(",");
-		int[] result = new int[strArr.length];
-		
-		for (int i =0 ; i < strArr.length; i++) {
-			result[i] = Integer.parseInt(strArr[i]);
-		}
-		
-		return result;
-	}
-	
-	private String convertArray(int[] arr) {
-		String str = "";
-		
-		if (arr.length < 1) {
-			return str;
-		}
-		
-		str += arr[0];
-		
-		for (int i = 1; i < arr.length; i++) {
-			str += "," + arr[i];
-		}
-		
-		return str;
+		return Tools.covertStringToArr(strFriends);
 	}
 	
 	private String convertArray(int[] arr, int add) {
-		String str = convertArray(arr);
+		String str = Tools.covertArrToString(arr);
 		
 		if (str.isEmpty()) {
 			str = "" + add;

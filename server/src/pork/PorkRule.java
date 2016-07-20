@@ -21,17 +21,21 @@ public class PorkRule {
 		return false;
 	}
 	
-	private void addToProkCenter(int[] porks) {
+	private void addToPorkCenter(int[] porks) {
 		for (int i = 0; i < porks.length; i++) {
 			porkCenter[porkNum] = porks[i];
 			porkNum++;
 		}
 	}
 	
-	private void setLastPorks(int fake, int[] porks) {
-		lastFake = fake;		
+	private void setLastPorks(int[] porks) {
 		lastPorks = Arrays.copyOf(porks, porks.length);
 		lastPorkNum = porks.length;
+	}
+	
+	private void setLastPorks(int fake, int[] porks) {
+		lastFake = fake;		
+		setLastPorks(porks);
 	}
 	
 	public void firstHand(int fake, int[] porks) {
@@ -39,12 +43,13 @@ public class PorkRule {
 		porkNum = 0;
 		lastPorkNum = 0;
 		
-		addToProkCenter(porks);
+		addToPorkCenter(porks);
 		setLastPorks(fake, porks);		
 	}
 	
-	public void addPork(int fake, int[] porks) {
-		setLastPorks(fake, porks);	
+	public void addPork(int[] porks) {
+		addToPorkCenter(porks);
+		setLastPorks(porks);	
 	}
 	
 	public boolean believe() {
@@ -54,7 +59,7 @@ public class PorkRule {
 	//return false means the last player was truly faked. 
 	public boolean unbelieve(int player) {
 		for (int i = 0; i < lastPorkNum; i++) {
-			if (lastPorks[i] != lastFake && !isVariablePork(lastPorks[i])) {
+			if (!isVariablePork(lastPorks[i]) && (lastPorks[i]/4 + 1) != lastFake) {
 				return false;
 			}
 		}

@@ -30,4 +30,10 @@ public class MessageValueTypes {
 	
 	public static final String addId = "addId";
 	public static final String delId = "delId";
+	
+	// operation means the action of this pork round.
+	// {"porkAction":"1", "userId":"123","porkData":"12,23,11,43"}
+	public static final String porkAction = "porkAction"; 
+	public static final String fakePork = "fakePork";
+	public static final String porkData = "porkData";
 }
