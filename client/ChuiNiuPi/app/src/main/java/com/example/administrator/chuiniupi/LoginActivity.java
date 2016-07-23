@@ -2,139 +2,92 @@ package com.example.administrator.chuiniupi;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler.Callback;
+import android.os.Handler;
 import android.os.Message;
-import android.text.TextUtils;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Toast;
 
 import java.util.HashMap;
 
 import cn.sharesdk.framework.Platform;
 import cn.sharesdk.framework.PlatformActionListener;
+import cn.sharesdk.framework.PlatformDb;
 import cn.sharesdk.framework.ShareSDK;
-import cn.sharesdk.framework.utils.UIHandler;
 import cn.sharesdk.tencent.qzone.QZone;
 import cn.sharesdk.wechat.friends.Wechat;
 
 
-public class LoginActivity extends  Activity implements Callback,
-        OnClickListener, PlatformActionListener {
-    private static final int MSG_USERID_FOUND = 1;
-    private static final int MSG_LOGIN = 2;
-    private static final int MSG_AUTH_CANCEL = 3;
-    private static final int MSG_AUTH_ERROR= 4;
-    private static final int MSG_AUTH_COMPLETE = 5;
+public class LoginActivity extends Activity implements PlatformActionListener, View.OnClickListener {
+    // 填写从短信SDK应用后台注册得到的APPKEY
+    private static String APPKEY = "27fe7909f8e8";
+    // 填写从短信SDK应用后台注册得到的APPSECRET
+    private static String APPSECRET = "3c5264e7e05b8860a9b98b34506cfa6e";
+    private Handler handler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            PlatformDb db = (PlatformDb) msg.obj;
+            Toast.makeText(LoginActivity.this, "userId:" + db.getUserId() + "/userName:" + db.getUserName(), Toast.LENGTH_LONG).show();
+            return false;
+        }
+    });
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ShareSDK.initSDK(this);
-
         setContentView(R.layout.activity_main);
-        findViewById(R.id.iv_weixin).setOnClickListener(this);
+        //初始化sharesdk,具体集成步骤请看文档：
+        ShareSDK.initSDK(this);
         findViewById(R.id.iv_QQ).setOnClickListener(this);
+        findViewById(R.id.iv_weixin).setOnClickListener(this);
     }
 
-    protected void onDestroy() {
-        ShareSDK.stopSDK(this);
-        super.onDestroy();
+    //QQ登陆
+    public void qqClick(View view) {
+        login(QZone.NAME);
     }
 
+    //新浪微博
+    public void SinaClick(View view) {
+        login(Wechat.NAME);
+    }
+
+    private void login(String platformName) {
+        Platform platform = ShareSDK.getPlatform(platformName);
+        platform.setPlatformActionListener(this);
+        //关闭SSO授权
+        platform.SSOSetting(true);
+        platform.showUser(null);
+    }
+
+    //登陆完成
+    @Override
+    public void onComplete(Platform platform, int i, HashMap<String, Object> hashMap) {
+        //获取用户数据
+        PlatformDb db = platform.getDb();
+        Message msg = Message.obtain();
+        msg.obj = db;
+        handler.sendMessage(msg);
+    }
+
+    //登陆错误
+    @Override
+    public void onError(Platform platform, int i, Throwable throwable) {
+        Toast.makeText(LoginActivity.this, throwable.toString(), Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onCancel(Platform platform, int i) {
+    }
+
+    @Override
     public void onClick(View v) {
-        switch(v.getId()) {
-            case R.id.iv_weixin: {
-                authorize(new Wechat(this));
-            }
-            break;
-            case R.id.iv_QQ: {
-                authorize(new QZone(this));
-            }
-            break;
+        switch (v.getId()){
+            case R.id.iv_QQ:
+                login(QZone.NAME);
+                break;
+            case R.id.iv_weixin:
+                login(Wechat.NAME);
+                break;
         }
     }
-
-    private void authorize(Platform plat) {
-        if(plat.isValid()) {
-            String userId = plat.getDb().getUserId();
-            if (!TextUtils.isEmpty(userId)) {
-                UIHandler.sendEmptyMessage(MSG_USERID_FOUND, this);
-                login(plat.getName(), userId, null);
-                return;
-            }
-        }
-        plat.setPlatformActionListener(this);
-        plat.SSOSetting(true);
-        plat.showUser(null);
-    }
-
-    public void onComplete(Platform platform, int action,
-                           HashMap<String, Object> res) {
-        if (action == Platform.ACTION_USER_INFOR) {
-            UIHandler.sendEmptyMessage(MSG_AUTH_COMPLETE, this);
-            login(platform.getName(), platform.getDb().getUserId(), res);
-        }
-        System.out.println(res);
-        System.out.println("------User Name ---------" + platform.getDb().getUserName());
-        System.out.println("------User ID ---------" + platform.getDb().getUserId());
-    }
-
-    public void onError(Platform platform, int action, Throwable t) {
-        if (action == Platform.ACTION_USER_INFOR) {
-            UIHandler.sendEmptyMessage(MSG_AUTH_ERROR, this);
-        }
-        t.printStackTrace();
-    }
-
-    public void onCancel(Platform platform, int action) {
-        if (action == Platform.ACTION_USER_INFOR) {
-            UIHandler.sendEmptyMessage(MSG_AUTH_CANCEL, this);
-        }
-    }
-
-    private void login(String plat, String userId, HashMap<String, Object> userInfo) {
-        Message msg = new Message();
-        msg.what = MSG_LOGIN;
-        msg.obj = plat;
-        UIHandler.sendMessage(msg, this);
-    }
-
-    public boolean handleMessage(Message msg) {
-        switch(msg.what) {
-            case MSG_USERID_FOUND: {
-                Toast.makeText(this, R.string.userid_found, Toast.LENGTH_SHORT).show();
-            }
-            break;
-            case MSG_LOGIN: {
-
-                String text = getString(R.string.logining, msg.obj);
-                Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
-                System.out.println("---------------");
-
-//				Builder builder = new Builder(this);
-//				builder.setTitle(R.string.if_register_needed);
-//				builder.setMessage(R.string.after_auth);
-//				builder.setPositiveButton(R.string.ok, null);
-//				builder.create().show();
-            }
-            break;
-            case MSG_AUTH_CANCEL: {
-                Toast.makeText(this, R.string.auth_cancel, Toast.LENGTH_SHORT).show();
-                System.out.println("-------MSG_AUTH_CANCEL--------");
-            }
-            break;
-            case MSG_AUTH_ERROR: {
-                Toast.makeText(this, R.string.auth_error, Toast.LENGTH_SHORT).show();
-                System.out.println("-------MSG_AUTH_ERROR--------");
-            }
-            break;
-            case MSG_AUTH_COMPLETE: {
-                Toast.makeText(this, R.string.auth_complete, Toast.LENGTH_SHORT).show();
-                System.out.println("--------MSG_AUTH_COMPLETE-------");
-            }
-            break;
-        }
-        return false;
-    }
-
 }
