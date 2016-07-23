@@ -147,7 +147,7 @@ public class Controller implements ConnHandler, LoginHandler, DataSendHandler{
 			try {
 				getScByUserId(userId).write(respBuf);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				Logger.getGlobal().info("send message data failed : " + messageType);
 				e.printStackTrace();
 			}
 		}			

@@ -38,18 +38,22 @@ public class PorkRule {
 		setLastPorks(porks);
 	}
 	
-	public void firstHand(int fake, int[] porks) {
+	public boolean firstHand(int fake, int[] porks) {
 		// initialize parameter. it's important to set zero to pork number, and it's only necessary to set these two parameter.
 		porkNum = 0;
 		lastPorkNum = 0;
 		
 		addToPorkCenter(porks);
 		setLastPorks(fake, porks);		
+		
+		return isFaked();
 	}
 	
-	public void addPork(int[] porks) {
+	public boolean addPork(int[] porks) {
 		addToPorkCenter(porks);
-		setLastPorks(porks);	
+		setLastPorks(porks);
+		
+		return isFaked();
 	}
 	
 	public boolean believe() {
@@ -57,7 +61,11 @@ public class PorkRule {
 	}
 	
 	//return false means the last player was truly faked. 
-	public boolean unbelieve(int player) {
+	public boolean unbelieve() {
+		return isFaked();
+	}
+	
+	private boolean isFaked() {
 		for (int i = 0; i < lastPorkNum; i++) {
 			if (!isVariablePork(lastPorks[i]) && (lastPorks[i]/4 + 1) != lastFake) {
 				return false;

@@ -50,7 +50,12 @@ public class MessageTypes {
 	//≈≈––∞Ò¿‡–Õ
 	public static final int MESSAGE_GETRANGE_REQ 		= (DOMAIN_RANGE << DOMAIN_OFFSET) + 1;
 	public static final int MESSAGE_GETRANGE_RSP 		= (DOMAIN_RANGE << DOMAIN_OFFSET) + 2;
-		
+	
+	
+	public static final int MESSAGE_READ_RADOM			= (DOMAIN_GAME << DOMAIN_OFFSET) +1;
+	public static final int MESSAGE_READ_SPEC			= (DOMAIN_GAME << DOMAIN_OFFSET) +2;
+	public static final int MESSAGE_GAME_DATA			= (DOMAIN_GAME << DOMAIN_OFFSET) +3;
+	
 	public static int getDomain(int messageType)
 	{
 		return messageType >> DOMAIN_OFFSET;
