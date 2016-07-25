@@ -46,17 +46,17 @@ public class UserProcess {
 	
 	private void delFriend(JSONObject jsonData) {
 		int userId = 0;
-		int addId = 0;
+		int delId = 0;
 		
 		try {
 			userId = jsonData.getInt(MessageValueTypes.userId);
-			addId = jsonData.getInt(MessageValueTypes.addId);
+			delId = jsonData.getInt(MessageValueTypes.delId);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		GlobalInstance.getInstance().getDbHandler().delFriend(userId, addId);
+		GlobalInstance.getInstance().getDbHandler().delFriend(userId, delId);
 		
 	}
 
