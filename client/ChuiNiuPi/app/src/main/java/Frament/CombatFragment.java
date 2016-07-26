@@ -12,15 +12,16 @@ import android.widget.ImageView;
 import android.widget.ListView;
 
 import com.example.administrator.chuiniupi.R;
-import com.example.administrator.chuiniupi.YouXiZhuoMian;
+import com.example.administrator.chuiniupi.GameSceneActivity;
 
 import static com.example.administrator.chuiniupi.R.id.lv_list;
 
 /**
  * Created by Administrator on 2016/6/12.
+ * 约战界面
  */
 
-public class YueZhanFrament extends Fragment implements View.OnClickListener {
+public class CombatFragment extends Fragment implements View.OnClickListener {
     private Activity activity;
     private ListView listvie;
     private ImageView suijikaishi;
@@ -41,7 +42,7 @@ public class YueZhanFrament extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.iv_suijikaishi:
-                startActivity(new Intent(activity, YouXiZhuoMian.class));
+                startActivity(new Intent(activity, GameSceneActivity.class));
                 break;
         }
     }

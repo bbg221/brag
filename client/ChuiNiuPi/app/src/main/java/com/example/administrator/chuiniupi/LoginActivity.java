@@ -9,28 +9,39 @@ import android.widget.Toast;
 
 import java.util.HashMap;
 
+import types.LoginBean;
 import cn.sharesdk.framework.Platform;
 import cn.sharesdk.framework.PlatformActionListener;
 import cn.sharesdk.framework.PlatformDb;
 import cn.sharesdk.framework.ShareSDK;
-import cn.sharesdk.tencent.qzone.QZone;
+import cn.sharesdk.tencent.qq.QQ;
 import cn.sharesdk.wechat.friends.Wechat;
-
+import de.greenrobot.event.EventBus;
+/*登录界面
+*
+* */
 
 public class LoginActivity extends Activity implements PlatformActionListener, View.OnClickListener {
     // 填写从短信SDK应用后台注册得到的APPKEY
     private static String APPKEY = "27fe7909f8e8";
     // 填写从短信SDK应用后台注册得到的APPSECRET
     private static String APPSECRET = "3c5264e7e05b8860a9b98b34506cfa6e";
+    public static final int LOGIN_VISTOR = 0;
+    public static final int LOGIN_QQ = 1;
+    public static final int LOGIN_WECHAT = 2;
+    public int type;
     private Handler handler = new Handler(new Handler.Callback() {
         @Override
-        public boolean handleMessage(Message msg) {
+        public boolean handleMessage(Message msg ) {
             PlatformDb db = (PlatformDb) msg.obj;
-            Toast.makeText(LoginActivity.this, "userId:" + db.getUserId() + "/userName:" + db.getUserName(), Toast.LENGTH_LONG).show();
+            String userId = db.getUserId();
+            LoginBean loginType=new LoginBean();
+            loginType.loginType=type;
+            loginType.loginNum=userId;
+            EventBus.getDefault().post(loginType);
             return false;
         }
     });
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,17 +51,6 @@ public class LoginActivity extends Activity implements PlatformActionListener, V
         findViewById(R.id.iv_QQ).setOnClickListener(this);
         findViewById(R.id.iv_weixin).setOnClickListener(this);
     }
-
-    //QQ登陆
-    public void qqClick(View view) {
-        login(QZone.NAME);
-    }
-
-    //新浪微博
-    public void SinaClick(View view) {
-        login(Wechat.NAME);
-    }
-
     private void login(String platformName) {
         Platform platform = ShareSDK.getPlatform(platformName);
         platform.setPlatformActionListener(this);
@@ -83,11 +83,19 @@ public class LoginActivity extends Activity implements PlatformActionListener, V
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.iv_QQ:
-                login(QZone.NAME);
+                type=1;
+                login(QQ.NAME);
                 break;
             case R.id.iv_weixin:
+                type=2;
                 login(Wechat.NAME);
                 break;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
     }
 }

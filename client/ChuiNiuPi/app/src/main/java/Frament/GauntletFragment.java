@@ -12,16 +12,17 @@ import com.example.administrator.chuiniupi.R;
 
 /**
  * Created by Administrator on 2016/6/12.
+ * 战书页面
  */
 
-public class PaiHangFrament extends Fragment {
+public class GauntletFragment extends Fragment {
     private Activity activity;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        activity=getActivity();
-        View view = inflater.inflate(R.layout.paihang_frament, null);
+       activity=getActivity();
+        View view = inflater.inflate(R.layout.zhanshu_frament, null);
         return view;
     }
 }

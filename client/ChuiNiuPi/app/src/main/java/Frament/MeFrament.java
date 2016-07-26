@@ -12,9 +12,10 @@ import com.example.administrator.chuiniupi.R;
 
 /**
  * Created by Administrator on 2016/6/12.
+ * 我的界面
  */
 
-public class WoFrament extends Fragment {
+public class MeFrament extends Fragment {
     private Activity activity;
 
     @Nullable

@@ -4,8 +4,9 @@ import android.view.View;
 
 /**
  * Created by Administrator on 2016/6/14.
+ * 游戏场景页面
  */
-public class YouXiZhuoMian extends BaseActivity{
+public class GameSceneActivity extends BaseActivity{
     @Override
     protected void lodLayout() {
 

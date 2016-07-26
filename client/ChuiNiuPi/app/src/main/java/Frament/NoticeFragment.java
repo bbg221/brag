@@ -11,18 +11,17 @@ import android.view.ViewGroup;
 import com.example.administrator.chuiniupi.R;
 
 /**
- * Created by Administrator on 2016/6/12.
- * 对战页面
+ * Created by Administrator on 2016/6/8.
+ * 公告界面
  */
 
-public class ZhanShuFrament extends Fragment {
+public class NoticeFragment extends Fragment {
     private Activity activity;
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-       activity=getActivity();
-        View view = inflater.inflate(R.layout.zhanshu_frament, null);
+        activity =  getActivity();
+        View view = inflater.inflate(R.layout.chuiniu, null);
         return view;
     }
 }
