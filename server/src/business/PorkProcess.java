@@ -247,15 +247,16 @@ public class PorkProcess {
 
 			// server know the game is end now, but don't tell players, because
 			// the other player has something else to do.
-			GlobalInstance.getInstance().getDbHandler().saveFail(anotherUser);
-			GlobalInstance.getInstance().getDbHandler().saveWin(userId, bragMap.get(userId));
+			// for_test
+			//GlobalInstance.getInstance().getDbHandler().saveFail(anotherUser);
+			//GlobalInstance.getInstance().getDbHandler().saveWin(userId, bragMap.get(userId));
 		}
 
 		if (0 == restCountMap.get(anotherUser) && GameState.end != gameState) {
 			gameState = GameState.end;
-
-			GlobalInstance.getInstance().getDbHandler().saveFail(userId);
-			GlobalInstance.getInstance().getDbHandler().saveWin(anotherUser, bragMap.get(anotherUser));
+			// for_test
+			//GlobalInstance.getInstance().getDbHandler().saveFail(userId);
+			//GlobalInstance.getInstance().getDbHandler().saveWin(anotherUser, bragMap.get(anotherUser));
 		}
 				
 		PorkData porkData = new PorkData();
@@ -284,8 +285,9 @@ public class PorkProcess {
 
 			// server know the game is end now, but don't tell players, because
 			// the other player has something else to do.
-			GlobalInstance.getInstance().getDbHandler().saveFail(anotherUser);
-			GlobalInstance.getInstance().getDbHandler().saveWin(userId, bragMap.get(userId));
+			// for_test
+			//GlobalInstance.getInstance().getDbHandler().saveFail(anotherUser);
+			//GlobalInstance.getInstance().getDbHandler().saveWin(userId, bragMap.get(userId));
 		}
 
 		PorkData porkData = new PorkData();
@@ -303,9 +305,9 @@ public class PorkProcess {
 		PorkData porkData = new PorkData();
 
 		if (PorkAction.giveUp == action) {
-
-			GlobalInstance.getInstance().getDbHandler().saveFail(userId);
-			GlobalInstance.getInstance().getDbHandler().saveWin(anotherUser, bragMap.get(anotherUser));
+			// for_test
+			//GlobalInstance.getInstance().getDbHandler().saveFail(userId);
+			//GlobalInstance.getInstance().getDbHandler().saveWin(anotherUser, bragMap.get(anotherUser));
 
 			porkData.action = PorkAction.giveupWin;
 			gameState = GameState.end;
@@ -319,9 +321,9 @@ public class PorkProcess {
 			porkData.action = PorkAction.refuseEqualRsp;
 
 		} else if (PorkAction.agreeEqual == action) {
-
-			GlobalInstance.getInstance().getDbHandler().saveEqual(userId);
-			GlobalInstance.getInstance().getDbHandler().saveEqual(anotherUser);
+			// for_test
+			//GlobalInstance.getInstance().getDbHandler().saveEqual(userId);
+			//GlobalInstance.getInstance().getDbHandler().saveEqual(anotherUser);
 
 			porkData.action = PorkAction.agreeEqualRsp;
 			gameState = GameState.end;

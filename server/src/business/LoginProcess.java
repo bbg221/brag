@@ -60,7 +60,10 @@ public class LoginProcess {
 
 	private int handleLoginForDataBase(int userId, int loginType, String loginNum) {
 		int needRefreshFlag = 0;
-
+		
+		// for_test
+		return needRefreshFlag;
+/*
 		// visitor never save into database.
 		if (MessageValueTypes.LOGIN_VISTOR == loginType) {
 			return createNeedUpdateFlag(1, 1); // means not need update
@@ -82,6 +85,7 @@ public class LoginProcess {
 		}
 
 		return needRefreshFlag;
+		*/
 	}
 
 	private int createNeedUpdateFlag(int nameChanged, int pictureChanged) {

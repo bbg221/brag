@@ -55,8 +55,8 @@ public class UserProcess {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		GlobalInstance.getInstance().getDbHandler().delFriend(userId, delId);
+		// for_test
+		//GlobalInstance.getInstance().getDbHandler().delFriend(userId, delId);
 		
 	}
 
@@ -71,8 +71,8 @@ public class UserProcess {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		GlobalInstance.getInstance().getDbHandler().addFriend(userId, addId);
+		// for_test
+		//GlobalInstance.getInstance().getDbHandler().addFriend(userId, addId);
 	}
 
 	private void getFriends(JSONObject jsonData) {
@@ -144,7 +144,8 @@ public class UserProcess {
 		}
 		
 		//save 
-		GlobalInstance.getInstance().getDbHandler().updateUserData(userId, userName, sex, age);		
+		// for_test
+		//GlobalInstance.getInstance().getDbHandler().updateUserData(userId, userName, sex, age);		
 	}
 	
 	private void refreshPic(JSONObject jsonData) {
