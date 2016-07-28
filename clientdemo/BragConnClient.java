@@ -42,11 +42,8 @@ public class BragConnClient {
 
 	private String serverIP = "localhost";
 	private int port = 8839;
-	private final int intlen = 4;
 	private SocketChannel channel = null;
 	private Selector selector = null;
-
-	RecvDispatch recvDispatch = new RecvDispatch();
 
 	public void wirteData(SocketChannel channel) {
 		ByteBuffer byteBuffer = ByteBuffer.allocate(20);
@@ -86,13 +83,13 @@ public class BragConnClient {
 
 				} else if (key.isReadable()) {
 					Logger.getGlobal().info("read key " + key.toString());
-					recvDispatch.dispatch(channel);
+					RecvDataPost.getInstance().readData(channel);
 				}
 				it.remove();
 			}
 		}
 	}
-
+	
 	private void handleConnect(SelectionKey key) throws IOException {
 
 		if (channel.isConnectionPending()) {
@@ -105,47 +102,7 @@ public class BragConnClient {
 
 		channel.register(selector, SelectionKey.OP_READ);
 
-		// wirteData(channel);
-
-		sendData(MessageTypes.MESSAGE_LOGIN, buildLoginData());
-	}
-
-	public void sendData(int messageType, JSONObject jsonData) {
-		ByteBuffer respBuf = ByteBuffer.allocate(jsonData.toString().length() + 20);
-		respBuf.clear();
-
-		respBuf.putInt(messageType);
-		respBuf.putInt(jsonData.toString().length());
-		respBuf.put(jsonData.toString().getBytes());
-
-		// switch buff from write to read
-		respBuf.flip();
-
-		// if exception is throw, it means socket was disabled.
-
-		try {
-			channel.write(respBuf);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		Logger.getGlobal().info("response data");
-
-	}
-
-	private JSONObject buildLoginData() {
-		JSONObject json = new JSONObject();
-
-		try {
-			json.put("loginType", 1);
-			json.put("loginNum", "2356453");
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return json;
+		ConnSend.getInstance().setSocketChannel(channel);
 	}
 
 }

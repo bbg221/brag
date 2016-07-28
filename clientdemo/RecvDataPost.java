@@ -14,7 +14,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class RecvDispatch {
+public class RecvDataPost {
+		
+	private RecvDataPost(){}
+
+    private static final RecvDataPost instance = new RecvDataPost();
+
+    public static RecvDataPost getInstance(){
+        return instance;
+    }
+	
+	
 	private int intlen = 4;
 	
 	private Map<Integer, RecvMessageHandler> handlerMap = new HashMap<>();
@@ -23,7 +33,7 @@ public class RecvDispatch {
 		handlerMap.put(messageId, handler);
 	}
 	
-	public void dispatch(SocketChannel sc) throws IOException {
+	public void readData(SocketChannel sc) throws IOException {
 		ByteBuffer typeBuf = ByteBuffer.allocate(intlen);
 		ByteBuffer lenBuf = ByteBuffer.allocate(intlen);
 		
@@ -48,15 +58,17 @@ public class RecvDispatch {
 		int type = MessageTypes.getDomain(messageType);
 		Logger.getGlobal().info("read something from  network messageType:" + 
 				messageType + ", len:" + messageLen + ", domain:" + type);
+				
+		RecvClientData recvClientData = new RecvClientData();
+		recvClientData.messageType = messageType; 
+		recvClientData.jsonStr = getDataFromSc(messageLen, sc);
 		
-		JSONObject jsonData = getDataFromSc(messageLen, sc);
+		// post to background thread to parse data.
+		EventBus.getDefault().post(recvClientData);
 
-		if (null != handlerMap.get(messageType)) {
-			handlerMap.get(messageType).handleMessage(messageType, jsonData);
-		}
 	}
 	
-	private JSONObject getDataFromSc(int messageLen, SocketChannel sc) throws IOException {
+	private String getDataFromSc(int messageLen, SocketChannel sc) throws IOException {
 		ByteBuffer  dataBuf = ByteBuffer.allocate(messageLen);
 		
 		long readNum = sc.read(dataBuf);
@@ -65,18 +77,9 @@ public class RecvDispatch {
 			throw e;
 		}
 		
-		dataBuf.flip();
+		dataBuf.flip();	
 		
-		JSONObject loginJson = new JSONObject();
-		
-		try {
-			loginJson = new JSONObject(byteBufferToString(dataBuf));
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return loginJson;		
+		return byteBufferToString(dataBuf);			
 	}
 	
 	public static String byteBufferToString(ByteBuffer buffer) {
